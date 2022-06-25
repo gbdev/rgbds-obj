@@ -100,6 +100,7 @@ impl<'a> Iterator for Iter<'a> {
             0x35 => Ok(RpnOp::Lte),
             0x40 => Ok(RpnOp::Lsh),
             0x41 => Ok(RpnOp::Rsh),
+            0x42 => Ok(RpnOp::Ursh),
             0x50 => self.read_u32().map_or(err, |id| Ok(RpnOp::BankSym(id))),
             0x51 => self
                 .read_string()
@@ -271,6 +272,8 @@ pub enum RpnOp<'a> {
     Lsh,
     /// `>>` operator.
     Rsh,
+    /// `>>>` operator.
+    Ursh,
     /// `BANK(Symbol)`
     BankSym(u32),
     /// `BANK("section")`
@@ -327,6 +330,7 @@ impl RpnOp<'_> {
             Lte => Binary,
             Lsh => Binary,
             Rsh => Binary,
+            Ursh => Binary,
             BankSym(..) => Literal,
             BankSect(..) => Literal,
             BankSelf => Literal,
@@ -351,7 +355,7 @@ impl RpnOp<'_> {
         match self {
             Pow => 6,
             Mul | Div | Mod => 5,
-            Lsh | Rsh => 4,
+            Lsh | Rsh | Ursh => 4,
             BinAnd | BinOr | Xor => 3,
             Add | Sub => 2,
             Eq | Neq | Gt | Lt | Gte | Lte => 1,
@@ -373,7 +377,7 @@ impl RpnOp<'_> {
 
         match self {
             Add | Mul | BinOr | BinAnd | Xor | And | Or => true,
-            Sub | Div | Mod | Pow | Eq | Neq | Gt | Lt | Gte | Lte | Lsh | Rsh => false,
+            Sub | Div | Mod | Pow | Eq | Neq | Gt | Lt | Gte | Lte | Lsh | Rsh | Ursh => false,
 
             // There is no associativity for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
@@ -434,6 +438,7 @@ impl Display for RpnOp<'_> {
             Lte => write!(fmt, "<="),
             Lsh => write!(fmt, "<<"),
             Rsh => write!(fmt, ">>"),
+            Ursh => write!(fmt, ">>>"),
             BankSym(id) => write!(fmt, "BANK(Sym#{})", id),
             BankSect(name) => write!(fmt, "BANK(\"{}\")", String::from_utf8_lossy(&name)),
             BankSelf => write!(fmt, "BANK(@)"),

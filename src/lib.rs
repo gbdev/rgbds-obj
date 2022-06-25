@@ -1,5 +1,5 @@
 //! This crate allows working with [RGBDS] object files.
-//! Currently, only version 9 revisions 6, 7 and 8 are supported, but more should be added in the
+//! Currently, only version 9 revisions 6–9 are supported, but more should be added in the
 //! future.
 //!
 //! # Object file revision table
@@ -11,6 +11,7 @@
 //!
 //! RGBDS release                                          | Object file format
 //! -------------------------------------------------------|-------------------
+//! [v0.6.0](https://rgbds.gbdev.io/docs/v0.?.?/rgbds.5)   | v9 r9
 //! [v0.5.1](https://rgbds.gbdev.io/docs/v0.5.1/rgbds.5)   | v9 r8
 //! [v0.5.0](https://rgbds.gbdev.io/docs/v0.5.0/rgbds.5)   | v9 r7
 //! [v0.4.2](https://rgbds.gbdev.io/docs/v0.4.2/rgbds.5)   | v9 r6
@@ -88,11 +89,11 @@ impl Object {
         }
 
         let revision = read_u32le(&mut input)?;
-        if !(6..=8).contains(&revision) {
+        if !(6..=9).contains(&revision) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
-                    "Object file v9 revision {} is not supported (must be 6, 7, or 8)",
+                    "Object file v9 revision {} is not supported (must be between 6 and 9)",
                     revision
                 ),
             ));

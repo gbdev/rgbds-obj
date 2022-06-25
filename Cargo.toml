@@ -10,8 +10,6 @@ license = "MIT"
 keywords = ["rgbds", "gameboy", "asm", "assembly", "gamedev"]
 categories = ["development-tools", "game-development", "parser-implementations"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 
 
