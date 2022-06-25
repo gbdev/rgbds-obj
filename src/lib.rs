@@ -158,8 +158,16 @@ impl Object {
     /// If the function does not fail, you can (and probably will have to) use [`Infallible`][std::convert::Infallible]:
     ///
     /// ```no_run
-    /// # let object = Object::read_from(&[0u8]);
-    /// object.walk_nodes<Infallible, _>(0, |node| println!("{:?}", node));
+    /// # use rgbds_obj::Object;
+    /// # use std::convert::Infallible;
+    /// # use std::fs::File;
+    /// #
+    /// # let input = File::open("camera.o").unwrap();
+    /// # let object = Object::read_from(&input).unwrap();
+    /// object.walk_nodes::<Infallible, _>(0, &mut |node| {
+    ///     println!("{:?}", node);
+    ///     Ok(())
+    /// });
     /// ```
     pub fn walk_nodes<E, F>(&self, id: u32, callback: &mut F) -> Result<(), NodeWalkError<E>>
     where
