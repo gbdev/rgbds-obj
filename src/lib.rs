@@ -1,6 +1,6 @@
 //! This crate allows working with [RGBDS] object files.
-//! Currently, only version 9 revisions 6–9 and version 10 revision 10 are supported,
-//! but more should be added in the future.
+//! Currently, only version 9 revisions 6–10 are supported, but more should be added in the
+//! future.
 //!
 //! # Object file revision table
 //!
@@ -11,8 +11,8 @@
 //!
 //! RGBDS release                                          | Object file format
 //! -------------------------------------------------------|-------------------
-//! [v0.8.0](https://rgbds.gbdev.io/docs/v0.8.0/rgbds.5)   | vA r10
-//! [v0.7.0](https://rgbds.gbdev.io/docs/v0.7.0/rgbds.5)   | v9 r9
+//! [v0.8.0](https://rgbds.gbdev.io/docs/v0.8.0/rgbds.5)   | v9 r10
+//! [v0.7.0](https://rgbds.gbdev.io/docs/v0.7.0/rgbds.5)   | v9 r9 (reported), v9 r10 (actual)
 //! [v0.6.1](https://rgbds.gbdev.io/docs/v0.6.1/rgbds.5)   | v9 r9
 //! [v0.6.0](https://rgbds.gbdev.io/docs/v0.6.0/rgbds.5)   | v9 r9
 //! [v0.5.1](https://rgbds.gbdev.io/docs/v0.5.1/rgbds.5)   | v9 r8
@@ -84,11 +84,11 @@ impl Object {
         }
 
         let version = magic[3];
-        if version != b'9' && version != b'A' {
+        if version != b'9' {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
-                    "Object file version {} is not supported (only 9 and 10 are)",
+                    "Object file version {} is not supported (must be 9)",
                     version
                 ),
             ));
