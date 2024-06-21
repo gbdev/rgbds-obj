@@ -100,8 +100,7 @@ impl Object {
                 io::ErrorKind::InvalidData,
                 format!(
                     "Object file {} revision {} is not supported (must be between 6 and 10)",
-                    version,
-                    revision
+                    version, revision
                 ),
             ));
         }

@@ -94,21 +94,21 @@ impl<'a> Iter<'a> {
                 return Some(&self.0.bytes()[start..self.1]);
             }
         }
-    }    
+    }
 
     fn read_sect_type(&mut self) -> Option<SectType> {
         use SectType::*;
 
         let val = match self.0.bytes().get(self.1) {
-           Some(0) => Some(Wram0),
-           Some(1) => Some(Vram),
-           Some(2) => Some(Romx),
-           Some(3) => Some(Rom0),
-           Some(4) => Some(Hram),
-           Some(5) => Some(Wramx),
-           Some(6) => Some(Sram),
-           Some(7) => Some(Oam),
-           _ => None
+            Some(0) => Some(Wram0),
+            Some(1) => Some(Vram),
+            Some(2) => Some(Romx),
+            Some(3) => Some(Rom0),
+            Some(4) => Some(Hram),
+            Some(5) => Some(Wramx),
+            Some(6) => Some(Sram),
+            Some(7) => Some(Oam),
+            _ => None,
         };
         self.1 += 1;
         val
