@@ -1,5 +1,5 @@
 //! This crate allows working with [RGBDS] object files.
-//! Currently, only version 9 revisions 6–9 are supported, but more should be added in the
+//! Currently, only version 9 revisions 6–10 are supported, but more should be added in the
 //! future.
 //!
 //! # Object file revision table
@@ -11,7 +11,10 @@
 //!
 //! RGBDS release                                          | Object file format
 //! -------------------------------------------------------|-------------------
-//! [v0.6.0](https://rgbds.gbdev.io/docs/v0.?.?/rgbds.5)   | v9 r9
+//! [v0.8.0](https://rgbds.gbdev.io/docs/v0.8.0/rgbds.5)   | v9 r10
+//! [v0.7.0](https://rgbds.gbdev.io/docs/v0.7.0/rgbds.5)   | v9 r9 (reported), v9 r10 (actual)
+//! [v0.6.1](https://rgbds.gbdev.io/docs/v0.6.1/rgbds.5)   | v9 r9
+//! [v0.6.0](https://rgbds.gbdev.io/docs/v0.6.0/rgbds.5)   | v9 r9
 //! [v0.5.1](https://rgbds.gbdev.io/docs/v0.5.1/rgbds.5)   | v9 r8
 //! [v0.5.0](https://rgbds.gbdev.io/docs/v0.5.0/rgbds.5)   | v9 r7
 //! [v0.4.2](https://rgbds.gbdev.io/docs/v0.4.2/rgbds.5)   | v9 r6
@@ -48,6 +51,7 @@ use util::*;
 /// A RGBDS object file.
 #[derive(Debug)]
 pub struct Object {
+    version: u8,
     revision: u32,
     fstack_nodes: Vec<Node>,
     symbols: Vec<Symbol>,
@@ -78,23 +82,25 @@ impl Object {
                 "This does not appear to be a valid RGBDS object",
             ));
         }
-        if magic[3] != b'9' {
+
+        let version = magic[3];
+        if version != b'9' {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
-                    "Object file version {} is not supported (only 9 is)",
-                    magic[3]
+                    "Object file version {} is not supported (must be 9)",
+                    version
                 ),
             ));
         }
 
         let revision = read_u32le(&mut input)?;
-        if !(6..=9).contains(&revision) {
+        if !(6..=10).contains(&revision) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
-                    "Object file v9 revision {} is not supported (must be between 6 and 9)",
-                    revision
+                    "Object file {} revision {} is not supported (must be between 6 and 10)",
+                    version, revision
                 ),
             ));
         }
@@ -104,6 +110,7 @@ impl Object {
         let nb_fstack_nodes = read_u32le(&mut input)?.try_into().unwrap();
 
         let mut obj = Self {
+            version,
             revision,
             fstack_nodes: Vec::with_capacity(nb_fstack_nodes),
             symbols: Vec::with_capacity(nb_symbols),
@@ -132,7 +139,7 @@ impl Object {
 
     /// The object's version.
     pub fn version(&self) -> u8 {
-        9
+        self.version
     }
 
     /// The object's revision.
