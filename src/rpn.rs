@@ -17,6 +17,36 @@ use std::iter;
 #[derive(Debug)]
 pub struct RpnExpr(Vec<u8>);
 
+/// A section memory type.
+#[derive(Debug, PartialEq)]
+pub enum SectType {
+    Wram0,
+    Vram,
+    Romx,
+    Rom0,
+    Hram,
+    Wramx,
+    Sram,
+    Oam,
+}
+impl SectType {
+    /// The section type's name.
+    pub fn name(&self) -> &'static str {
+        use SectType::*;
+
+        match self {
+            Wram0 => "WRAM0",
+            Vram => "VRAM",
+            Romx => "ROMX",
+            Rom0 => "ROM0",
+            Hram => "HRAM",
+            Wramx => "WRAMX",
+            Sram => "SRAM",
+            Oam => "OAM",
+        }
+    }
+}
+
 impl RpnExpr {
     /// Constructs a RPN expression from its byte serialization.
     /// This does not check the expression's correctness.
@@ -64,6 +94,24 @@ impl<'a> Iter<'a> {
                 return Some(&self.0.bytes()[start..self.1]);
             }
         }
+    }    
+
+    fn read_sect_type(&mut self) -> Option<SectType> {
+        use SectType::*;
+
+        let val = match self.0.bytes().get(self.1) {
+           Some(0) => Some(Wram0),
+           Some(1) => Some(Vram),
+           Some(2) => Some(Romx),
+           Some(3) => Some(Rom0),
+           Some(4) => Some(Hram),
+           Some(5) => Some(Wramx),
+           Some(6) => Some(Sram),
+           Some(7) => Some(Oam),
+           _ => None
+        };
+        self.1 += 1;
+        val
     }
 }
 impl<'a> Iterator for Iter<'a> {
@@ -112,6 +160,12 @@ impl<'a> Iterator for Iter<'a> {
             0x54 => self
                 .read_string()
                 .map_or(err, |string| Ok(RpnOp::StartofSect(string))),
+            0x55 => self
+                .read_sect_type()
+                .map_or(err, |sect_type| Ok(RpnOp::SizeofSectType(sect_type))),
+            0x56 => self
+                .read_sect_type()
+                .map_or(err, |sect_type| Ok(RpnOp::StartofSectType(sect_type))),
             0x60 => Ok(RpnOp::HramCheck),
             0x61 => Ok(RpnOp::RstCheck),
             0x80 => self.read_u32().map_or(err, |id| Ok(RpnOp::Int(id))),
@@ -284,6 +338,10 @@ pub enum RpnOp<'a> {
     SizeofSect(&'a [u8]),
     /// `STARTOF("section")`
     StartofSect(&'a [u8]),
+    /// `SIZEOF(SectionType)`
+    SizeofSectType(SectType),
+    /// `STARTOF(SectionType)`
+    StartofSectType(SectType),
     /// HRAM check (check if the value is in HRAM range, then `& 0xFF`).
     HramCheck,
     /// `rst` check (check if the value is a `rst` target, then `| 0xC7`).
@@ -336,6 +394,8 @@ impl RpnOp<'_> {
             BankSelf => Literal,
             SizeofSect(..) => Literal,
             StartofSect(..) => Literal,
+            SizeofSectType(..) => Literal,
+            StartofSectType(..) => Literal,
             HramCheck => Unary,
             RstCheck => Unary,
             Int(..) => Literal,
@@ -363,7 +423,8 @@ impl RpnOp<'_> {
 
             // There is no precedence for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
-            | StartofSect(..) | HramCheck | RstCheck | Int(..) | Sym(..) => unreachable!(),
+            | StartofSect(..) | SizeofSectType(..) | StartofSectType(..) | HramCheck | RstCheck
+            | Int(..) | Sym(..) => unreachable!(),
         }
     }
 
@@ -381,7 +442,8 @@ impl RpnOp<'_> {
 
             // There is no associativity for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
-            | StartofSect(..) | HramCheck | RstCheck | Int(..) | Sym(..) => unreachable!(),
+            | StartofSect(..) | SizeofSectType(..) | StartofSectType(..) | HramCheck | RstCheck
+            | Int(..) | Sym(..) => unreachable!(),
         }
     }
 
@@ -444,6 +506,8 @@ impl Display for RpnOp<'_> {
             BankSelf => write!(fmt, "BANK(@)"),
             SizeofSect(name) => write!(fmt, "SIZEOF(\"{}\")", String::from_utf8_lossy(&name)),
             StartofSect(name) => write!(fmt, "STARTOF(\"{}\")", String::from_utf8_lossy(&name)),
+            SizeofSectType(sect_type) => write!(fmt, "SIZEOF({})", sect_type.name()),
+            StartofSectType(sect_type) => write!(fmt, "STARTOF({})", sect_type.name()),
             HramCheck => write!(fmt, "HRAM?"),
             RstCheck => write!(fmt, "RST?"),
             Int(val) => write!(fmt, "${:04x}", val),
