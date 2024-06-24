@@ -87,10 +87,7 @@ impl Object {
         if version != b'9' {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!(
-                    "Object file version {} is not supported (must be 9)",
-                    version
-                ),
+                format!("Object file version {version} is not supported (must be 9)"),
             ));
         }
 
@@ -98,10 +95,7 @@ impl Object {
         if !(6..=10).contains(&revision) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!(
-                    "Object file {} revision {} is not supported (must be between 6 and 10)",
-                    version, revision
-                ),
+                format!("Object file {version} revision {revision} is not supported (must be between 6 and 10)"),
             ));
         }
 
@@ -172,7 +166,7 @@ impl Object {
     /// # let input = File::open("camera.o").unwrap();
     /// # let object = Object::read_from(&input).unwrap();
     /// object.walk_nodes::<Infallible, _>(0, &mut |node| {
-    ///     println!("{:?}", node);
+    ///     println!("{node:?}");
     ///     Ok(())
     /// });
     /// ```
@@ -225,7 +219,7 @@ impl<E: Display> Display for NodeWalkError<E> {
         use NodeWalkError::*;
 
         match self {
-            BadId(id, len) => write!(fmt, "Requested node #{} of {}", id, len),
+            BadId(id, len) => write!(fmt, "Requested node #{id} of {len}"),
             Custom(err) => err.fmt(fmt),
         }
     }
