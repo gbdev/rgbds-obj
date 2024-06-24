@@ -122,7 +122,7 @@ impl SectionType {
         use SectionType::*;
 
         match self {
-            Rom0(data) | Romx(data) => Some(&data),
+            Rom0(data) | Romx(data) => Some(data),
             _ => None,
         }
     }

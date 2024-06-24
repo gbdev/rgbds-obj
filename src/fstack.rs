@@ -90,7 +90,7 @@ impl Display for NodeType {
                     write!(fmt, "::REPT~{}", iter)?;
                 }
             }
-            File(name) | Macro(name) => write!(fmt, "{}", String::from_utf8_lossy(&name))?,
+            File(name) | Macro(name) => write!(fmt, "{}", String::from_utf8_lossy(name))?,
         };
         Ok(())
     }
