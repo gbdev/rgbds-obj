@@ -87,10 +87,10 @@ impl Display for NodeType {
         match self {
             Rept(iters) => {
                 for iter in iters {
-                    write!(fmt, "::REPT~{}", iter)?;
+                    write!(fmt, "::REPT~{iter}")?;
                 }
             }
-            File(name) | Macro(name) => write!(fmt, "{}", String::from_utf8_lossy(&name))?,
+            File(name) | Macro(name) => write!(fmt, "{}", String::from_utf8_lossy(name))?,
         };
         Ok(())
     }

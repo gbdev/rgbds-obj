@@ -212,8 +212,8 @@ impl RpnExpr {
     fn fmt_rpn(&self, fmt: &mut Formatter) -> Result<(), fmt::Error> {
         for (op, prefix) in self.iter().zip(iter::successors(Some(""), |_| Some(" "))) {
             match op {
-                Err(err) => write!(fmt, "{}<RPN error@${:04x}>", prefix, err.offset())?,
-                Ok(op) => write!(fmt, "{}{}", prefix, op)?,
+                Err(err) => write!(fmt, "{prefix}<RPN error@${:04x}>", err.offset())?,
+                Ok(op) => write!(fmt, "{prefix}{op}")?,
             }
         }
         Ok(())
@@ -501,17 +501,17 @@ impl Display for RpnOp<'_> {
             Lsh => write!(fmt, "<<"),
             Rsh => write!(fmt, ">>"),
             Ursh => write!(fmt, ">>>"),
-            BankSym(id) => write!(fmt, "BANK(Sym#{})", id),
-            BankSect(name) => write!(fmt, "BANK(\"{}\")", String::from_utf8_lossy(&name)),
+            BankSym(id) => write!(fmt, "BANK(Sym#{id})"),
+            BankSect(name) => write!(fmt, "BANK(\"{}\")", String::from_utf8_lossy(name)),
             BankSelf => write!(fmt, "BANK(@)"),
-            SizeofSect(name) => write!(fmt, "SIZEOF(\"{}\")", String::from_utf8_lossy(&name)),
-            StartofSect(name) => write!(fmt, "STARTOF(\"{}\")", String::from_utf8_lossy(&name)),
+            SizeofSect(name) => write!(fmt, "SIZEOF(\"{}\")", String::from_utf8_lossy(name)),
+            StartofSect(name) => write!(fmt, "STARTOF(\"{}\")", String::from_utf8_lossy(name)),
             SizeofSectType(sect_type) => write!(fmt, "SIZEOF({})", sect_type.name()),
             StartofSectType(sect_type) => write!(fmt, "STARTOF({})", sect_type.name()),
             HramCheck => write!(fmt, "HRAM?"),
             RstCheck => write!(fmt, "RST?"),
-            Int(val) => write!(fmt, "${:04x}", val),
-            Sym(id) => write!(fmt, "Sym#{}", id),
+            Int(val) => write!(fmt, "${val:04x}"),
+            Sym(id) => write!(fmt, "Sym#{id}"),
         }
     }
 }

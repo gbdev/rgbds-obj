@@ -68,7 +68,7 @@ impl SymbolVisibility {
         use SymbolVisibility::*;
 
         match self {
-            Local(data) | Exported(data) => Some(&data),
+            Local(data) | Exported(data) => Some(data),
             Imported => None,
         }
     }
