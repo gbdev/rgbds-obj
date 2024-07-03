@@ -424,7 +424,12 @@ impl RpnOp<'_> {
             // There is no precedence for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
             | StartofSect(..) | SizeofSectType(..) | StartofSectType(..) | HramCheck | RstCheck
-            | Int(..) | Sym(..) => unreachable!(),
+            | Int(..) | Sym(..) => {
+                panic!(
+                    "Non-binary operators (such as {:?}) have no precedence",
+                    self,
+                )
+            }
         }
     }
 
@@ -443,7 +448,12 @@ impl RpnOp<'_> {
             // There is no associativity for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
             | StartofSect(..) | SizeofSectType(..) | StartofSectType(..) | HramCheck | RstCheck
-            | Int(..) | Sym(..) => unreachable!(),
+            | Int(..) | Sym(..) => {
+                panic!(
+                    "Non-binary operators (such as {:?}) have no associativity",
+                    self,
+                )
+            }
         }
     }
 
