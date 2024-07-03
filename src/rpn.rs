@@ -462,10 +462,15 @@ impl RpnOp<'_> {
     pub fn needs_parens(&self, parent: &RpnOp<'_>, is_left: bool) -> bool {
         use Arity::*;
 
-        match self.arity() {
-            // Literals have no precedence, and unary operations always have priority over binary
-            Literal | Unary => false,
-            Binary => {
+        match (parent.arity(), self.arity()) {
+            // Literals have no precedence, so no unnecessary parens please.
+            (Literal, _) | (_, Literal) => false,
+            // Unary operations always have priority over binary...
+            // ...so parens are necessary for a unary enclosing a binary or unary...
+            (Unary, Binary | Unary) => true,
+            // ...and not for the reverse.
+            (Binary, Unary) => false,
+            (Binary, Binary) => {
                 // For binary, we need to compare the precedences
                 use Ordering::*;
 
