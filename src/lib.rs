@@ -87,7 +87,10 @@ impl Object {
         if version != b'9' {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("Object file version {version} is not supported (must be 9)"),
+                format!(
+                    "Object file version {} is not supported (must be 9)",
+                    version as char
+                ),
             ));
         }
 
@@ -95,7 +98,10 @@ impl Object {
         if !(6..=10).contains(&revision) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
-                format!("Object file {version} revision {revision} is not supported (must be between 6 and 10)"),
+                format!(
+                    "Object file {} revision {revision} is not supported (must be between 6 and 10)",
+                    version as char
+                ),
             ));
         }
 
