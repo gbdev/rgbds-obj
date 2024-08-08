@@ -168,6 +168,10 @@ impl<'a> Iterator for Iter<'a> {
                 .map_or(err, |sect_type| Ok(RpnOp::StartofSectType(sect_type))),
             0x60 => Ok(RpnOp::HramCheck),
             0x61 => Ok(RpnOp::RstCheck),
+            0x70 => Ok(RpnOp::High),
+            0x71 => Ok(RpnOp::Low),
+            0x72 => Ok(RpnOp::BitWidth),
+            0x73 => Ok(RpnOp::TzCount),
             0x80 => self.read_u32().map_or(err, |id| Ok(RpnOp::Int(id))),
             0x81 => self.read_u32().map_or(err, |id| Ok(RpnOp::Sym(id))),
             _ => err,
@@ -346,6 +350,14 @@ pub enum RpnOp<'a> {
     HramCheck,
     /// `rst` check (check if the value is a `rst` target, then `| 0xC7`).
     RstCheck,
+    // `HIGH(value)`
+    High,
+    // `LOW(value)`
+    Low,
+    // `BITWIDTH(value)`
+    BitWidth,
+    // `TZCOUNT(value)`
+    TzCount,
     /// 32-bit literal.
     Int(u32),
     /// Symbol (referenced by 32-bit ID).
@@ -398,6 +410,10 @@ impl RpnOp<'_> {
             StartofSectType(..) => Literal,
             HramCheck => Unary,
             RstCheck => Unary,
+            High => Unary,
+            Low => Unary,
+            BitWidth => Unary,
+            TzCount => Unary,
             Int(..) => Literal,
             Sym(..) => Literal,
         }
@@ -424,7 +440,7 @@ impl RpnOp<'_> {
             // There is no precedence for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
             | StartofSect(..) | SizeofSectType(..) | StartofSectType(..) | HramCheck | RstCheck
-            | Int(..) | Sym(..) => {
+            | High | Low | BitWidth | TzCount | Int(..) | Sym(..) => {
                 panic!(
                     "Non-binary operators (such as {:?}) have no precedence",
                     self,
@@ -448,7 +464,7 @@ impl RpnOp<'_> {
             // There is no associativity for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
             | StartofSect(..) | SizeofSectType(..) | StartofSectType(..) | HramCheck | RstCheck
-            | Int(..) | Sym(..) => {
+            | High | Low | BitWidth | TzCount | Int(..) | Sym(..) => {
                 panic!(
                     "Non-binary operators (such as {:?}) have no associativity",
                     self,
@@ -525,6 +541,10 @@ impl Display for RpnOp<'_> {
             StartofSectType(sect_type) => write!(fmt, "STARTOF({})", sect_type.name()),
             HramCheck => write!(fmt, "HRAM?"),
             RstCheck => write!(fmt, "RST?"),
+            High => write!(fmt, "HIGH"),
+            Low => write!(fmt, "LOW"),
+            BitWidth => write!(fmt, "BITWIDTH"),
+            TzCount => write!(fmt, "TZCOUNT"),
             Int(val) => write!(fmt, "${val:04x}"),
             Sym(id) => write!(fmt, "Sym#{id}"),
         }
@@ -571,8 +591,8 @@ fn write_node(nodes: &[RpnTreeNode], id: usize, fmt: &mut Formatter) -> Result<(
         Literal => write!(fmt, "{}", node.op),
         // Gulp, these can be a bit funky
         Unary(operand) => match node.op {
-            // These two are printed like functions
-            HramCheck | RstCheck => {
+            // These are printed like functions
+            HramCheck | RstCheck | High | Low | BitWidth | TzCount => {
                 write!(fmt, "{}(", node.op)?;
                 write_child_node(operand, fmt, true)?;
                 write!(fmt, ")")

@@ -1,5 +1,5 @@
 //! This crate allows working with [RGBDS] object files.
-//! Currently, only version 9 revisions 6–10 are supported, but more should be added in the
+//! Currently, only version 9 revisions 6–11 are supported, but more should be added in the
 //! future.
 //!
 //! # Object file revision table
@@ -11,6 +11,7 @@
 //!
 //! RGBDS release                                          | Object file format
 //! -------------------------------------------------------|-------------------
+//! [v0.9.0](https://rgbds.gbdev.io/docs/v0.9.0/rgbds.5)   | v9 r11
 //! [v0.8.0](https://rgbds.gbdev.io/docs/v0.8.0/rgbds.5)   | v9 r10
 //! [v0.7.0](https://rgbds.gbdev.io/docs/v0.7.0/rgbds.5)   | v9 r9 (reported), v9 r10 (actual)
 //! [v0.6.1](https://rgbds.gbdev.io/docs/v0.6.1/rgbds.5)   | v9 r9
@@ -22,7 +23,7 @@
 //! [v0.4.0](https://rgbds.gbdev.io/docs/v0.4.0/rgbds.5)   | v9 r3
 //! [v0.3.10](https://rgbds.gbdev.io/docs/v0.3.10/rgbds.5) | v6
 //!
-//! Earlier releases use v6, up to and including v0.3.4.
+//! RGBDS releases v0.3.4 through v0.3.9 also used object format v6.
 //!
 //! [RGBDS]: https://rgbds.gbdev.io
 
@@ -95,11 +96,11 @@ impl Object {
         }
 
         let revision = read_u32le(&mut input)?;
-        if !(6..=10).contains(&revision) {
+        if !(6..=11).contains(&revision) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
-                    "Object file {} revision {revision} is not supported (must be between 6 and 10)",
+                    "Object file {} revision {revision} is not supported (must be between 6 and 11)",
                     version as char
                 ),
             ));
