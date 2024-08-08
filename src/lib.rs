@@ -23,7 +23,7 @@
 //! [v0.4.0](https://rgbds.gbdev.io/docs/v0.4.0/rgbds.5)   | v9 r3
 //! [v0.3.10](https://rgbds.gbdev.io/docs/v0.3.10/rgbds.5) | v6
 //!
-//! RGBDS releases v0.3.4 and earlier use object format v6.
+//! RGBDS releases v0.3.4 through v0.3.9 also used object format v6.
 //!
 //! [RGBDS]: https://rgbds.gbdev.io
 
