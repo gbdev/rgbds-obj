@@ -106,6 +106,8 @@ impl Object {
             ));
         }
 
+        let sections_have_srcs = version > b'9' || (version == b'9' && revision >= 11);
+
         let nb_symbols = read_u32le(&mut input)?.try_into().unwrap();
         let nb_sections = read_u32le(&mut input)?.try_into().unwrap();
         let nb_fstack_nodes = read_u32le(&mut input)?.try_into().unwrap();
@@ -126,7 +128,8 @@ impl Object {
             obj.symbols.push(Symbol::read_from(&mut input)?);
         }
         for _ in 0..nb_sections {
-            obj.sections.push(Section::read_from(&mut input)?);
+            obj.sections
+                .push(Section::read_from(&mut input, sections_have_srcs)?);
         }
 
         let nb_assertions = read_u32le(&mut input)?.try_into().unwrap();

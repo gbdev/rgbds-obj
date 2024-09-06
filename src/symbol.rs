@@ -102,7 +102,7 @@ impl SymbolDef {
         })
     }
 
-    /// Where the file has been defined.
+    /// Where the symbol has been defined.
     /// That is, the [file stack node][crate::Node] ID, and the line number.
     pub fn source(&self) -> (u32, u32) {
         (self.source_file_id, self.line_no)
