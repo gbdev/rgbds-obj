@@ -8,6 +8,8 @@ use std::io::{self, Read};
 #[derive(Debug)]
 pub struct Section {
     name: Vec<u8>,
+    source_file_id: Option<u32>,
+    line_no: Option<u32>,
     size: u32,
     sect_type: SectionType,
     modifier: SectionMod,
@@ -17,8 +19,18 @@ pub struct Section {
     ofs: u32,
 }
 impl Section {
-    pub(crate) fn read_from(mut input: impl Read) -> Result<Self, io::Error> {
+    pub(crate) fn read_from(mut input: impl Read, has_src: bool) -> Result<Self, io::Error> {
         let name = read_str(&mut input)?;
+        let source_file_id = if has_src {
+            Some(read_u32le(&mut input)?)
+        } else {
+            None
+        };
+        let line_no = if has_src {
+            Some(read_u32le(&mut input)?)
+        } else {
+            None
+        };
         let size = read_u32le(&mut input)?;
         let sect_type = read_u8(&mut input)?;
         let modifier = SectionMod::from(sect_type)?;
@@ -31,6 +43,8 @@ impl Section {
 
         Ok(Self {
             name,
+            source_file_id,
+            line_no,
             size,
             sect_type,
             modifier,
@@ -45,6 +59,16 @@ impl Section {
     /// As with all names pulled from object files, this is not guaranteed to be valid UTF-8.
     pub fn name(&self) -> &[u8] {
         &self.name
+    }
+
+    /// Where the section has been defined.
+    /// That is, the [file stack node][crate::Node] ID, and the line number.
+    /// This is `None` for object files prior to v9 r11.
+    pub fn source(&self) -> Option<(u32, u32)> {
+        match (self.source_file_id, self.line_no) {
+            (Some(source_file_id), Some(line_no)) => Some((source_file_id, line_no)),
+            _ => None,
+        }
     }
 
     /// The section's size.
