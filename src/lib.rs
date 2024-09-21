@@ -16,6 +16,7 @@
 //! [v0.7.0](https://rgbds.gbdev.io/docs/v0.7.0/rgbds.5)   | v9 r9 (reported), v9 r10 (actual)
 //! [v0.6.1](https://rgbds.gbdev.io/docs/v0.6.1/rgbds.5)   | v9 r9
 //! [v0.6.0](https://rgbds.gbdev.io/docs/v0.6.0/rgbds.5)   | v9 r9
+//! [v0.5.2](https://rgbds.gbdev.io/docs/v0.5.2/rgbds.5)   | v9 r8
 //! [v0.5.1](https://rgbds.gbdev.io/docs/v0.5.1/rgbds.5)   | v9 r8
 //! [v0.5.0](https://rgbds.gbdev.io/docs/v0.5.0/rgbds.5)   | v9 r7
 //! [v0.4.2](https://rgbds.gbdev.io/docs/v0.4.2/rgbds.5)   | v9 r6
