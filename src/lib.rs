@@ -11,6 +11,7 @@
 //!
 //! RGBDS release                                          | Object file format
 //! -------------------------------------------------------|-------------------
+//! [v0.9.1](https://rgbds.gbdev.io/docs/v0.9.1/rgbds.5)   | v9 r11
 //! [v0.9.0](https://rgbds.gbdev.io/docs/v0.9.0/rgbds.5)   | v9 r11
 //! [v0.8.0](https://rgbds.gbdev.io/docs/v0.8.0/rgbds.5)   | v9 r10
 //! [v0.7.0](https://rgbds.gbdev.io/docs/v0.7.0/rgbds.5)   | v9 r9 (reported), v9 r10 (actual)
