@@ -76,12 +76,20 @@ impl<'a> Iter<'a> {
         Self(expr, 0)
     }
 
+    fn read_u8(&mut self) -> Option<u8> {
+        let val = self.0.bytes().get(self.1).copied();
+        self.1 += 1;
+        val
+    }
+
     fn read_u32(&mut self) -> Option<u32> {
-        self.0.bytes().get(self.1..self.1 + 4).map(|bytes| {
-            let val = u32::from_le_bytes(bytes.try_into().unwrap());
-            self.1 += 4;
-            val
-        })
+        let val = self
+            .0
+            .bytes()
+            .get(self.1..self.1 + 4)
+            .map(|bytes| u32::from_le_bytes(bytes.try_into().unwrap()));
+        self.1 += 4;
+        val
     }
 
     fn read_string(&mut self) -> Option<&'a [u8]> {
@@ -168,6 +176,7 @@ impl<'a> Iterator for Iter<'a> {
                 .map_or(err, |sect_type| Ok(RpnOp::StartofSectType(sect_type))),
             0x60 => Ok(RpnOp::HramCheck),
             0x61 => Ok(RpnOp::RstCheck),
+            0x62 => self.read_u8().map_or(err, |mask| Ok(RpnOp::BitIndex(mask))),
             0x70 => Ok(RpnOp::High),
             0x71 => Ok(RpnOp::Low),
             0x72 => Ok(RpnOp::BitWidth),
@@ -350,13 +359,15 @@ pub enum RpnOp<'a> {
     HramCheck,
     /// `rst` check (check if the value is a `rst` target, then `| 0xC7`).
     RstCheck,
-    // `HIGH(value)`
+    /// `bit/res/set` bit index (check if the value is in 0-7 range, then `<< 3` and `| u8`
+    BitIndex(u8),
+    /// `HIGH(value)`
     High,
-    // `LOW(value)`
+    /// `LOW(value)`
     Low,
-    // `BITWIDTH(value)`
+    /// `BITWIDTH(value)`
     BitWidth,
-    // `TZCOUNT(value)`
+    /// `TZCOUNT(value)`
     TzCount,
     /// 32-bit literal.
     Int(u32),
@@ -410,6 +421,7 @@ impl RpnOp<'_> {
             StartofSectType(..) => Literal,
             HramCheck => Unary,
             RstCheck => Unary,
+            BitIndex(..) => Unary,
             High => Unary,
             Low => Unary,
             BitWidth => Unary,
@@ -440,7 +452,7 @@ impl RpnOp<'_> {
             // There is no precedence for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
             | StartofSect(..) | SizeofSectType(..) | StartofSectType(..) | HramCheck | RstCheck
-            | High | Low | BitWidth | TzCount | Int(..) | Sym(..) => {
+            | BitIndex(..) | High | Low | BitWidth | TzCount | Int(..) | Sym(..) => {
                 panic!(
                     "Non-binary operators (such as {:?}) have no precedence",
                     self,
@@ -464,7 +476,7 @@ impl RpnOp<'_> {
             // There is no associativity for non-binary operators...
             Neg | Cpl | Not | BankSym(..) | BankSect(..) | BankSelf | SizeofSect(..)
             | StartofSect(..) | SizeofSectType(..) | StartofSectType(..) | HramCheck | RstCheck
-            | High | Low | BitWidth | TzCount | Int(..) | Sym(..) => {
+            | BitIndex(..) | High | Low | BitWidth | TzCount | Int(..) | Sym(..) => {
                 panic!(
                     "Non-binary operators (such as {:?}) have no associativity",
                     self,
@@ -541,6 +553,13 @@ impl Display for RpnOp<'_> {
             StartofSectType(sect_type) => write!(fmt, "STARTOF({})", sect_type.name()),
             HramCheck => write!(fmt, "HRAM?"),
             RstCheck => write!(fmt, "RST?"),
+            BitIndex(mask) => {
+                const OP_NAMES: [&str; 4] = ["INVALID", "BIT", "RES", "SET"];
+                const REG_NAMES: [&str; 8] = ["B", "C", "D", "E", "H", "L", "[HL]", "A"];
+                let op_id = (mask >> 6) as usize;
+                let reg_id = (mask & 0b111) as usize;
+                write!(fmt, "{}<{}>", OP_NAMES[op_id], REG_NAMES[reg_id])
+            }
             High => write!(fmt, "HIGH"),
             Low => write!(fmt, "LOW"),
             BitWidth => write!(fmt, "BITWIDTH"),
@@ -596,6 +615,11 @@ fn write_node(nodes: &[RpnTreeNode], id: usize, fmt: &mut Formatter) -> Result<(
                 write!(fmt, "{}(", node.op)?;
                 write_child_node(operand, fmt, true)?;
                 write!(fmt, ")")
+            }
+            // This is printed like an instruction
+            BitIndex(..) => {
+                write!(fmt, "{} ", node.op)?;
+                write_child_node(operand, fmt, true)
             }
             // The rest is simply affixed to the node
             _ => {

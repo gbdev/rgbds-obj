@@ -11,6 +11,7 @@
 //!
 //! RGBDS release                                          | Object file format
 //! -------------------------------------------------------|-------------------
+//! [v0.9.2](https://rgbds.gbdev.io/docs/v0.9.2/rgbds.5)   | v9 r12
 //! [v0.9.1](https://rgbds.gbdev.io/docs/v0.9.1/rgbds.5)   | v9 r11
 //! [v0.9.0](https://rgbds.gbdev.io/docs/v0.9.0/rgbds.5)   | v9 r11
 //! [v0.8.0](https://rgbds.gbdev.io/docs/v0.8.0/rgbds.5)   | v9 r10
@@ -98,11 +99,11 @@ impl Object {
         }
 
         let revision = read_u32le(&mut input)?;
-        if !(6..=11).contains(&revision) {
+        if !(6..=12).contains(&revision) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
-                    "Object file {} revision {revision} is not supported (must be between 6 and 11)",
+                    "Object file {} revision {revision} is not supported (must be between 6 and 12)",
                     version as char
                 ),
             ));
