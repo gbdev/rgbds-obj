@@ -33,7 +33,7 @@
 //!
 //! [RGBDS]: https://rgbds.gbdev.io
 
-#![doc(html_root_url = "https://docs.rs/rgbds-obj/0.45.0")]
+#![doc(html_root_url = "https://docs.rs/rgbds-obj/0.5.0")]
 
 use std::convert::TryInto;
 use std::error::Error;
