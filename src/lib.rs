@@ -171,7 +171,7 @@ impl Object {
     /// Walks the node tree, from its root up to the node with the given ID, running a callback on
     /// each node encountered.
     ///
-    /// The functon may return an error, which aborts the walk.
+    /// The function may return an error, which aborts the walk.
     /// If the function does not fail, you can (and probably will have to) use [`Infallible`][std::convert::Infallible]:
     ///
     /// ```no_run
@@ -181,23 +181,28 @@ impl Object {
     /// #
     /// # let input = File::open("camera.o").unwrap();
     /// # let object = Object::read_from(&input).unwrap();
-    /// object.walk_nodes::<Infallible, _>(0, &mut |node| {
+    /// object.walk_nodes::<Infallible, _>(0, 1, &mut |node| {
     ///     println!("{node:?}");
     ///     Ok(())
     /// });
     /// ```
-    pub fn walk_nodes<E, F>(&self, id: u32, callback: &mut F) -> Result<(), NodeWalkError<E>>
+    pub fn walk_nodes<E, F>(
+        &self,
+        id: u32,
+        line_no: u32,
+        callback: &mut F,
+    ) -> Result<(), NodeWalkError<E>>
     where
-        F: FnMut(&Node) -> Result<(), NodeWalkError<E>>,
+        F: FnMut(&Node, u32) -> Result<(), NodeWalkError<E>>,
     {
         let node = self
             .node(id)
             .ok_or_else(|| NodeWalkError::bad_id(id, self))?;
 
-        if let Some((id, _)) = node.parent() {
-            self.walk_nodes(id, callback)?;
+        if let Some((parent_id, parent_line_no)) = node.parent() {
+            self.walk_nodes(parent_id, parent_line_no, callback)?;
         }
-        callback(node)
+        callback(node, line_no)
     }
 
     /// The object's symbols.
