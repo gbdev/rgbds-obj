@@ -545,7 +545,7 @@ impl Display for RpnOp<'_> {
             Rsh => write!(fmt, ">>"),
             Ursh => write!(fmt, ">>>"),
             BankSym(id) => {
-                if id == &u32::MAX {
+                if *id == u32::MAX {
                     write!(fmt, "BANK(@)")
                 } else {
                     write!(fmt, "BANK(Sym#{id})")
@@ -572,7 +572,7 @@ impl Display for RpnOp<'_> {
             TzCount => write!(fmt, "TZCOUNT"),
             Int(val) => write!(fmt, "${val:04x}"),
             Sym(id) => {
-                if id == &u32::MAX {
+                if *id == u32::MAX {
                     write!(fmt, "@")
                 } else {
                     write!(fmt, "Sym#{id}")
