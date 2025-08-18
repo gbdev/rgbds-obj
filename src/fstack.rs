@@ -20,17 +20,19 @@ pub struct Node {
     parent_id: Option<u32>,
     parent_line_no: u32,
     node_type: NodeType,
+    quiet: bool,
 }
 impl Node {
     pub(crate) fn read_from(mut input: impl Read) -> Result<Self, io::Error> {
         let parent_id = opt_u32(read_u32le(&mut input)?);
         let parent_line_no = read_u32le(&mut input)?;
-        let node_type = NodeType::read_from(input)?;
+        let (node_type, quiet) = NodeType::read_from(input)?;
 
         Ok(Node {
             parent_id,
             parent_line_no,
             node_type,
+            quiet,
         })
     }
 
@@ -43,6 +45,11 @@ impl Node {
     /// The node's type and associated data.
     pub fn type_data(&self) -> &NodeType {
         &self.node_type
+    }
+
+    /// Whether the node is "quiet" (excluded from error and warning backtraces).
+    pub fn is_quiet(&self) -> &bool {
+        &self.quiet
     }
 }
 
@@ -60,19 +67,20 @@ pub enum NodeType {
     Macro(Vec<u8>),
 }
 impl NodeType {
-    fn read_from(mut input: impl Read) -> Result<Self, io::Error> {
+    fn read_from(mut input: impl Read) -> Result<(Self, bool), io::Error> {
         let node_type = read_u8(&mut input)?;
-        match node_type {
+        let quiet = (node_type & 0x80) != 0;
+        match node_type & 0x7F {
             0 => {
                 let depth = read_u32le(&mut input)?.try_into().unwrap();
                 let mut iters = Vec::with_capacity(depth);
                 for _ in 0..depth {
                     iters.push(read_u32le(&mut input)?);
                 }
-                Ok(NodeType::Rept(iters))
+                Ok((NodeType::Rept(iters), quiet))
             }
-            1 => Ok(NodeType::File(read_str(input)?)),
-            2 => Ok(NodeType::Macro(read_str(input)?)),
+            1 => Ok((NodeType::File(read_str(input)?), quiet)),
+            2 => Ok((NodeType::Macro(read_str(input)?), quiet)),
             _ => Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "Invalid fstack node type",
