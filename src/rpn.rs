@@ -544,7 +544,13 @@ impl Display for RpnOp<'_> {
             Lsh => write!(fmt, "<<"),
             Rsh => write!(fmt, ">>"),
             Ursh => write!(fmt, ">>>"),
-            BankSym(id) => write!(fmt, "BANK(Sym#{id})"),
+            BankSym(id) => {
+                if id == &u32::MAX {
+                    write!(fmt, "BANK(@)")
+                } else {
+                    write!(fmt, "BANK(Sym#{id})")
+                }
+            }
             BankSect(name) => write!(fmt, "BANK(\"{}\")", String::from_utf8_lossy(name)),
             BankSelf => write!(fmt, "BANK(@)"),
             SizeofSect(name) => write!(fmt, "SIZEOF(\"{}\")", String::from_utf8_lossy(name)),
@@ -565,7 +571,13 @@ impl Display for RpnOp<'_> {
             BitWidth => write!(fmt, "BITWIDTH"),
             TzCount => write!(fmt, "TZCOUNT"),
             Int(val) => write!(fmt, "${val:04x}"),
-            Sym(id) => write!(fmt, "Sym#{id}"),
+            Sym(id) => {
+                if id == &u32::MAX {
+                    write!(fmt, "@")
+                } else {
+                    write!(fmt, "Sym#{id}")
+                }
+            }
         }
     }
 }
