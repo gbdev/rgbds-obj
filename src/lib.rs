@@ -1,5 +1,5 @@
 //! This crate allows working with [RGBDS] object files.
-//! Currently, only version 9 revisions 6–11 are supported, but more should be added in the
+//! Currently, only version 9 revisions 6–13 are supported, but more should be added in the
 //! future.
 //!
 //! # Object file revision table
@@ -11,6 +11,9 @@
 //!
 //! RGBDS release                                          | Object file format
 //! -------------------------------------------------------|-------------------
+//! [v1.0.0](https://rgbds.gbdev.io/docs/v1.0.0/rgbds.5)   | v9 r13
+//! [v0.9.4](https://rgbds.gbdev.io/docs/v0.9.4/rgbds.5)   | v9 r12
+//! [v0.9.3](https://rgbds.gbdev.io/docs/v0.9.3/rgbds.5)   | v9 r12
 //! [v0.9.2](https://rgbds.gbdev.io/docs/v0.9.2/rgbds.5)   | v9 r12
 //! [v0.9.1](https://rgbds.gbdev.io/docs/v0.9.1/rgbds.5)   | v9 r11
 //! [v0.9.0](https://rgbds.gbdev.io/docs/v0.9.0/rgbds.5)   | v9 r11
@@ -30,7 +33,7 @@
 //!
 //! [RGBDS]: https://rgbds.gbdev.io
 
-#![doc(html_root_url = "https://docs.rs/rgbds-obj/0.4.0")]
+#![doc(html_root_url = "https://docs.rs/rgbds-obj/0.5.0")]
 
 use std::convert::TryInto;
 use std::error::Error;
@@ -99,11 +102,11 @@ impl Object {
         }
 
         let revision = read_u32le(&mut input)?;
-        if !(6..=12).contains(&revision) {
+        if !(6..=13).contains(&revision) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 format!(
-                    "Object file {} revision {revision} is not supported (must be between 6 and 12)",
+                    "Object file {} revision {revision} is not supported (must be between 6 and 13)",
                     version as char
                 ),
             ));
@@ -168,7 +171,7 @@ impl Object {
     /// Walks the node tree, from its root up to the node with the given ID, running a callback on
     /// each node encountered.
     ///
-    /// The functon may return an error, which aborts the walk.
+    /// The function may return an error, which aborts the walk.
     /// If the function does not fail, you can (and probably will have to) use [`Infallible`][std::convert::Infallible]:
     ///
     /// ```no_run
@@ -178,23 +181,28 @@ impl Object {
     /// #
     /// # let input = File::open("camera.o").unwrap();
     /// # let object = Object::read_from(&input).unwrap();
-    /// object.walk_nodes::<Infallible, _>(0, &mut |node| {
+    /// object.walk_nodes::<Infallible, _>(0, 1, &mut |node| {
     ///     println!("{node:?}");
     ///     Ok(())
     /// });
     /// ```
-    pub fn walk_nodes<E, F>(&self, id: u32, callback: &mut F) -> Result<(), NodeWalkError<E>>
+    pub fn walk_nodes<E, F>(
+        &self,
+        id: u32,
+        line_no: u32,
+        callback: &mut F,
+    ) -> Result<(), NodeWalkError<E>>
     where
-        F: FnMut(&Node) -> Result<(), NodeWalkError<E>>,
+        F: FnMut(&Node, u32) -> Result<(), NodeWalkError<E>>,
     {
         let node = self
             .node(id)
             .ok_or_else(|| NodeWalkError::bad_id(id, self))?;
 
-        if let Some((id, _)) = node.parent() {
-            self.walk_nodes(id, callback)?;
+        if let Some((parent_id, parent_line_no)) = node.parent() {
+            self.walk_nodes(parent_id, parent_line_no, callback)?;
         }
-        callback(node)
+        callback(node, line_no)
     }
 
     /// The object's symbols.
