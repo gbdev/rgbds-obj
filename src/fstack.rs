@@ -51,6 +51,11 @@ impl Node {
     pub fn is_quiet(&self) -> &bool {
         &self.quiet
     }
+
+    /// Whether the node is a `REPT`.
+    pub fn is_rept(&self) -> bool {
+        matches!(self.type_data(), NodeType::Rept(..))
+    }
 }
 
 /// A file stack node's type, and associated type-dependent data.
