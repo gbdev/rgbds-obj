@@ -181,8 +181,8 @@ impl Object {
     /// #
     /// # let input = File::open("camera.o").unwrap();
     /// # let object = Object::read_from(&input).unwrap();
-    /// object.walk_nodes::<Infallible, _>(0, 1, &mut |node| {
-    ///     println!("{node:?}");
+    /// object.walk_nodes::<Infallible, _>(0, 1, &mut |node, line_no| {
+    ///     println!("{node:?} at {line_no:?}");
     ///     Ok(())
     /// });
     /// ```
